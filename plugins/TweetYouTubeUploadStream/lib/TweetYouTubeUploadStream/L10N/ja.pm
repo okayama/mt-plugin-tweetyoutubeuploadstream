@@ -19,6 +19,7 @@ use vars qw( %Lexicon );
     'Settings for YouTube' => 'YouTube に関する設定',
     'YouTube account' => 'YouTube アカウント',
     'Tweet format' => 'つぶやきのフォーマット',
+    'Update twitter success: [_1]' => 'つぶやきました: [_1]',
 );
 
 1;
