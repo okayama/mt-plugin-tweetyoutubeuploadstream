@@ -1,0 +1,30 @@
+#!/usr/bin/perl -w
+
+use strict;
+use lib 'lib', '../lib';
+use lib 'extlib', '../extlib';
+use MT;
+
+my $video_id = 0;
+my $blog_id = 0;
+
+require Getopt::Long;
+Getopt::Long::GetOptions(
+    "video_id=s" => \$video_id,
+    "blog_id=i" => \$blog_id,
+);
+
+my $app = MT->instance;
+if ( my $plugin = $app->component( 'TweetYouTubeUploadStream' ) ) {
+    if ( $video_id ) {
+        if ( $blog_id && $blog_id =~ /^[0-9]{1,}$/ ) {
+            MT::Plugin::TweetYouTubeUploadStream::tweet_youtube_upload_stream_by_id( $video_id, $blog_id );
+        } else {
+            print MT::Plugin::TweetYouTubeUploadStream::get_shorter_url( $video_id ) . "\n";
+        }
+    } else {
+        $plugin->tweet_youtube_upload_stream();
+    }
+}
+
+1;
