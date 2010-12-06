@@ -8,6 +8,7 @@ use MT::AtomServer;
 
 use XML::Simple;
 use utf8;
+use HTML::TreeBuilder;
 
 our $PLUGIN_NAME = 'TweetYouTubeUploadStream';
 our $PLUGIN_VERSION = '1.0';
@@ -52,6 +53,54 @@ my $plugin = new MT::Plugin::TweetYouTubeUploadStream( {
 	},
 } );
 
+sub tweet_youtube_upload_stream_by_id {
+    my ( $video_id, $blog_id ) = @_;
+    my $shorter_url = get_shorter_url( $video_id );
+    my $ua = MT->new_ua;
+    my $req = HTTP::Request->new( GET => $shorter_url ) or return;
+    $req->header( 'User-Agent' => "$PLUGIN_NAME/$PLUGIN_VERSION" );
+    my $res = $ua->request( $req ) or return;
+    if ( $res->is_success ) {
+        my $content = $res->decoded_content;
+        my $tree = HTML::TreeBuilder->new;
+        $tree->parse( $content );
+        my ( $author, $title, $description );
+        for my $meta ( $tree->find( 'meta' ) ) {
+            my $name = $meta->attr( 'name' );
+            next unless $name;
+            if ( $name eq 'title' ) {
+                $title = $meta->attr( 'content' );
+                $title = MT::I18N::utf8_off( $title );
+            }
+            if ( $name eq 'description' ) {
+                $description = $meta->attr( 'content' );
+                $description = MT::I18N::utf8_off( $description );
+            }
+        }
+        if ( my $element_username = $tree->look_down( "id", "watch-username" ) ) {
+            my $element_author = $element_username->find( 'strong' );
+            $author = $element_author->as_text;
+            $author = MT::I18N::utf8_off( $author );
+        }
+        my $scope = 'blog:' . $blog_id;
+        my $tweet = $plugin->get_config_value( 'tweet_format', $scope );
+        $tweet = MT::I18N::utf8_off( $tweet );
+        my $search_shoter_url = quotemeta( '*shoter_url*' );
+        my $search_title = quotemeta( '*title*' );
+        my $search_content = quotemeta( '*content*' );
+        my $search_author = quotemeta( '*author*' );
+        $tweet =~ s/$search_shoter_url/$shorter_url/g;
+        $tweet =~ s/$search_title/$title/g;
+        $tweet =~ s/$search_content/$content/g;
+        $tweet =~ s/$search_author/$author/g;
+        print $tweet . "\n";
+        if ( my $res = $plugin->update_twitter( $tweet, $blog_id ) ) {
+            my $log_message = $plugin->translate( 'Update twitter success: [_1]', $res );
+            _save_success_log( $log_message, $blog_id );
+        }
+    }
+}
+
 sub _blog_config_template {
 	my $plugin = shift;
 	my ( $param,  $scope ) = @_;
@@ -92,7 +141,7 @@ sub tweet_youtube_upload_stream {
                 if ( my $tweets = _get_tweet( $blog_id, $rss_url, $tweet_format, $last_modified, $last_tweeted ) ) {
                     my $updated = 0;
                     for my $tweet ( @$tweets ) {
-                        if ( my $res = $plugin->update_twitter( $tweet, $blog_id ) ) {
+                      if ( my $res = $plugin->update_twitter( $tweet, $blog_id ) ) {
                             my $log_message = $plugin->translate( 'Update twitter success: [_1]', $res );
                             _save_success_log( $log_message, $blog_id );
                             $last_tweeted = time;
@@ -115,7 +164,7 @@ sub _get_tweet {
     return unless $format;
     my $ua = MT->new_ua;
     my $req = HTTP::Request->new( GET => $rss_url ) or return;
-   $req->header( 'User-Agent' => "$PLUGIN_NAME/$PLUGIN_VERSION" );
+    $req->header( 'User-Agent' => "$PLUGIN_NAME/$PLUGIN_VERSION" );
     if ( $last_modified ) {
         $req->header( 'If-Modified-Since' => $last_modified );
     }
@@ -196,10 +245,7 @@ sub consumer_secret {
 
 sub update_twitter {
 	my ( $plugin, $msg, $blog_id ) = @_;
-
 	require Net::OAuth::Simple;
-	my $access_token = $plugin->access_token( $blog_id );
-	my $access_token_secret = $plugin->access_token_secret( $blog_id );
 	my %tokens  = (
 		'access_token' => $plugin->access_token( $blog_id ),
 		'access_token_secret' => $plugin->access_token_secret( $blog_id ),
