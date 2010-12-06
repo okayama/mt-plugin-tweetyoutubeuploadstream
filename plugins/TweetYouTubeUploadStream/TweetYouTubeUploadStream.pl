@@ -224,7 +224,10 @@ sub update_twitter {
 		my $err = $@;
 		return $plugin->trans_error( "Failed to get response from [_1], ([_2])", "twitter", $err );
 	}
-	return $plugin->trans_error( "Failed to get response from [_1], ([_2])", "twitter", $response->status_line ) unless $response->is_success;
+	unless ( $response->is_success ) {
+	    return $plugin->trans_error( "Failed to get response from [_1], ([_2])", "twitter", $response->status_line );
+	}
+	return $msg;
 1;
 }
 
