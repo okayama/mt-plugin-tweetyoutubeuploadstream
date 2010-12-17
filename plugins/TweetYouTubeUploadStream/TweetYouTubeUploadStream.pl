@@ -8,6 +8,7 @@ use MT::AtomServer;
 
 use XML::Simple;
 use utf8;
+use Encode;
 use HTML::TreeBuilder;
 
 our $PLUGIN_NAME = 'TweetYouTubeUploadStream';
