@@ -1,0 +1,36 @@
+id: TweetYouTubeUploadstream
+name: TweetYouTubeUploadstream
+key: tweetyoutubeuploadstream
+version: 1.1
+description: <__trans phrase='Tweet new uploaded video of YouTube account.'>
+author_name: okayama
+author_link: http://weeeblog.net/
+l10n_class: TweetYouTubeUploadstream::L10N
+blog_config_template: tweetyoutubeuploadstream_config_blog.tmpl
+settings:
+    consumer_key:
+        default: VMnDxTLkLdQmUGs0ytPmWw
+        scope: system
+    consumer_secret:
+        default: kmNDDg4eSBzWpLzp52FAvgn9kgVWNvhX4aWMEmqZZYs
+        scope: system
+    access_token:
+    access_token_secret:
+    youtube_id:
+    last_updated:
+    tweet_limit:
+        default: 5
+    tweet_format:
+        default: *author* uploaded *title* to YouTube: *shorter_url* #YouTube #TweetYouTubeUploadstream
+applications:
+    cms:
+        methods:
+            tweetyoutubeuploadstream_oauth: $tweetyoutubeuploadstream::TweetYouTubeUploadstream::CMS::_mode_tweetyoutubeuploadstream_oauth
+            tweetyoutubeuploadstream_access_token: $tweetyoutubeuploadstream::TweetYouTubeUploadstream::CMS::_mode_tweetyoutubeuploadstream_access_token
+tasks:
+    tweetyoutubeuploadstream:
+        label: TweetYouTubeUploadstream Task
+        frequency: 5
+        code: $tweetyoutubeuploadstream::TweetYouTubeUploadstream::Tasks::tweet_youtube_uploadstream
+callbacks:
+    MT::App::CMS::template_source.tweetyoutubeuploadstream_config_blog: $tweetyoutubeuploadstream::TweetYouTubeUploadstream::Callbacks::_cb_ts_tweetyoutubeuploadstream_config_blog

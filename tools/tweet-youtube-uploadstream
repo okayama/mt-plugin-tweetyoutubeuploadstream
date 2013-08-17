@@ -1,0 +1,33 @@
+#!/usr/bin/perl -w
+use strict;
+use lib qw( lib ../lib );
+use lib qw( extlib ../extlib );
+use lib qw( plugins/TweetYouTubeUploadstream/lib plugins/TweetYouTubeUploadstream/extlib );
+
+use MT;
+
+my $video_id = 0;
+my $blog_id = 0;
+
+require Getopt::Long;
+Getopt::Long::GetOptions(
+    "video_id=s" => \$video_id,
+    "blog_id=i" => \$blog_id,
+);
+
+my $app = MT->instance;
+if ( my $plugin = $app->component( 'TweetYouTubeUploadStream' ) ) {
+    if ( $video_id ) {
+        require TweetYouTubeUploadstream::Util;
+        if ( $blog_id && $blog_id =~ /^[0-9]{1,}$/ ) {
+            TweetYouTubeUploadstream::Util::tweet_youtube_uploadstream_by_id( $video_id, $blog_id );
+        } else {
+            print TweetYouTubeUploadstream::Util::shorter_url( $video_id ) . "\n";
+        }
+    } else {
+        require TweetYouTubeUploadstream::Tasks;
+        TweetYouTubeUploadstream::Tasks::tweet_youtube_uploadstream();
+    }
+}
+
+1;

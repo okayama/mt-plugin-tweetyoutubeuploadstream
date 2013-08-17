@@ -1,6 +1,5 @@
-package TweetYouTubeUploadStream::L10N;
-
+package TweetYouTubeUploadstream::L10N;
 use strict;
-use base 'MT::Plugin::L10N';
+use base qw( MT::Plugin::L10N MT::L10N );
 
 1;
