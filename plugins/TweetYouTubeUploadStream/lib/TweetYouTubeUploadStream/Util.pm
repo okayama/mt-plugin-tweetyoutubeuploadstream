@@ -74,7 +74,7 @@ sub update_twitter {
     $request->sign;
     $request->verify;
 
-    my $ua = LWP::UserAgent->new;
+    my $ua = MT->new_ua;
     my $http_header = HTTP::Headers->new( 'User-Agent' => $plugin->name );
     my $http_request = HTTP::Request->new( $request_method, $url, $http_header, $request->to_post_body );
     $http_request->content_type( 'application/x-www-form-urlencoded' ); # Required in API version 1.1
