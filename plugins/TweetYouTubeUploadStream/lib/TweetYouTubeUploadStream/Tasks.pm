@@ -51,7 +51,7 @@ sub _get_tweet {
             for my $key ( @items ) {
                 my $updated = $items{ $key }->{ updated };
                 my $updated_epoch = MT::AtomServer::iso2epoch( undef, $updated );
-                if ( $last_updated && ( $updated_epoch <= $last_updated ) ) {
+                if ( $last_updated && ( $updated_epoch < $last_updated ) ) {
                     next;
                 }
                 if ( my $video_id = $key ) {
